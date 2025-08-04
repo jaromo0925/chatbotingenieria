@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBot - Ingeniería de Software María Cano</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chatbot-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 80%;
+            animation: fadeIn 0.5s ease-out;
+            line-height: 1.4;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bot-message {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: #1565c0;
+            margin-right: auto;
+            border: 1px solid #90caf9;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            margin-left: auto;
+            box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+        }
+
+        .quick-questions {
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .quick-questions h3 {
+            color: #4a90e2;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .question-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .question-btn {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            border: 1px solid #4a90e2;
+            color: #4a90e2;
+            padding: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .question-btn:hover {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .user-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .user-input:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 18px;
+            background: #f0f0f0;
+            border-radius: 18px;
+            max-width: 80px;
+            margin-bottom: 15px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4a90e2;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            } 40% {
+                transform: scale(1);
+            }
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 1.5rem;
+            color: #4a90e2;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .chatbot-container {
+                height: 90vh;
+                margin: 10px;
+            }
+            
+            .question-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="header">
+            <div class="logo">🎓</div>
+            <h1>ChatBot - Ingeniería de Software</h1>
+            <p>Fundación Universitaria María Cano</p>
+        </div>
+        
+        <div class="chat-area" id="chatArea">
+            <div class="message bot-message">
+                ¡Hola! 👋 Soy tu asistente virtual para el programa de Ingeniería de Software de la Fundación Universitaria María Cano. Puedo ayudarte con información sobre el plan de estudios, costos, requisitos de admisión, perfil profesional y mucho más. ¿En qué te puedo ayudar hoy?
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+
+        <div class="quick-questions">
+            <h3>💡 Preguntas frecuentes:</h3>
+            <div class="question-buttons">
+                <button class="question-btn" onclick="askQuestion('¿Cuánto cuesta el semestre?')">💰 Costos del programa</button>
+                <button class="question-btn" onclick="askQuestion('¿Cuántos semestres dura?')">⏰ Duración del programa</button>
+                <button class="question-btn" onclick="askQuestion('¿Qué materias se ven?')">📚 Plan de estudios</button>
+                <button class="question-btn" onclick="askQuestion('¿Cuáles son los requisitos?')">📋 Requisitos de ingreso</button>
+                <button class="question-btn" onclick="askQuestion('¿Qué hace un ingeniero de software?')">👨‍💻 Perfil profesional</button>
+                <button class="question-btn" onclick="askQuestion('¿Dónde puedo trabajar?')">🏢 Campo laboral</button>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-container">
+                <input type="text" class="user-input" id="userInput" placeholder="Escribe tu pregunta aquí..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <button class="send-btn" onclick="sendMessage()">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const programData = {
+            costos: {
+                semestre: "$3.186.174",
+                inscripcion: "$141.144",
+                totalPrograma: "Entre $28.675.566 - $31.675.566 (aproximadamente)",
+                info: "El programa tiene un costo de $3.186.174 por semestre en 2025. Los derechos de inscripción son de $141.144."
+            },
+            duracion: {
+                semestres: "9 semestres",
+                creditos: "156 créditos",
+                modalidad: "Presencial",
+                ciudad: "Medellín",
+                info: "El programa de Ingeniería de Software tiene una duración de 9 semestres con un total de 156 créditos académicos."
+            },
+            requisitos: {
+                titulo: "Ser bachiller",
+                examenes: "Haber presentado las pruebas ICFES (Saber 11)",
+                documentos: ["Fotocopia del acta de grado de bachillerato", "Resultado de las pruebas ICFES", "Documento de identidad", "Foto 3x4 fondo azul"],
+                proceso: "Diligenciar formulario en línea, pagar derechos de inscripción y cargar documentos en formato PDF",
+                info: "Para ingresar necesitas ser bachiller, haber presentado las pruebas Saber 11 y completar el proceso de inscripción en línea."
+            },
+            planEstudios: {
+                semestre1: ["Gestión de TIC", "Matemáticas I", "Competencias comunicativas", "Cátedra María Cano", "Desarrollo humano", "Geometría", "Introducción a la ingeniería", "Pensamiento lógico y algorítmico"],
+                semestre2: ["Matemáticas II", "Lectura crítica", "Competencias ciudadanas", "Cálculo diferencial", "Álgebra lineal", "Plataformas de información", "Lenguajes de programación para la web"],
+                semestre3: ["Innovación y creatividad", "Estadística", "Cálculo integral", "Física I y laboratorio", "Estructura de datos", "Lenguajes de programación para móviles"],
+                materiasPrincipales: ["Construcción de software I y II", "Bases de datos", "Bodegas de datos", "Inteligencia artificial", "Ciberseguridad", "Arquitectura de computación en la nube", "Ciencia de datos", "Calidad del software"],
+                info: "El plan de estudios incluye 54 materias distribuidas en 9 semestres, con énfasis en programación, bases de datos, inteligencia artificial y tecnologías emergentes."
+            },
+            perfilProfesional: {
+                competencias: [
+                    "Analizar, diseñar, modelar, desarrollar e implementar productos y servicios de software",
+                    "Aplicar modelos, técnicas y métodos propios de la Ingeniería del software",
+                    "Desarrollar sistemas de información utilizando herramientas de última generación",
+                    "Evaluar productos de software a partir de criterios de calidad",
+                    "Gerenciar, auditar y evaluar sistemas de información y plataformas tecnológicas"
+                ],
+                enfoques: ["Enfoque social", "Productos de clase mundial", "Estándares y normativas internacionales", "Ética profesional"],
+                info: "El ingeniero de software de la María Cano está capacitado para responder a las necesidades del sistema productivo nacional con un enfoque social."
+            },
+            campoLaboral: {
+                cargos: [
+                    "Líder de proyectos de análisis, diseño y mantenimiento de software",
+                    "Asesor en desarrollo y soporte de instituciones de software",
+                    "Consultor y auditor de proyectos de desarrollo de software",
+                    "Gerente de sistemas e informática",
+                    "Coordinador de proyectos de desarrollo de software",
+                    "Creador y propietario de empresas de desarrollo de software"
+                ],
+                sectores: ["Sector productivo", "Sector de servicios", "Instituciones públicas", "Empresas privadas", "Emprendimiento tecnológico"],
+                info: "Los egresados pueden desempeñarse en diversos roles desde desarrollo hasta gerencia, tanto en empresas como en emprendimiento propio."
+            },
+            universidad: {
+                nombre: "Fundación Universitaria María Cano",
+                sede: "Medellín, Antioquia",
+                snies: "104471",
+                registroCalificado: "N. 013063 del 31 de julio de 2023",
+                vigencia: "7 años",
+                facultad: "Facultad de Ingeniería",
+                info: "Universidad privada fundada en 1987, con sedes en Medellín, Cali, Neiva y Popayán."
+            }
+        };
+
+        function addMessage(message, isUser = false) {
+            const chatArea = document.getElementById('chatArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.innerHTML = message;
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function showTyping() {
+            document.getElementById('typingIndicator').style.display = 'block';
+            document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
+        }
+
+        function hideTyping() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        function processQuestion(question) {
+            const lowerQuestion = question.toLowerCase();
+            
+            // Costos
+            if (lowerQuestion.includes('costo') || lowerQuestion.includes('precio') || lowerQuestion.includes('cuánto cuesta') || lowerQuestion.includes('valor')) {
+                return `💰 <strong>Costos del Programa 2025:</strong><br><br>
+                • <strong>Semestre:</strong> ${programData.costos.semestre}<br>
+                • <strong>Inscripción:</strong> ${programData.costos.inscripcion}<br>
+                • <strong>Programa completo:</strong> ${programData.costos.totalPrograma}<br><br>
+                💡 <em>La universidad ofrece becas que pueden reducir considerablemente estos costos.</em>`;
+            }
+            
+            // Duración
+            if (lowerQuestion.includes('duración') || lowerQuestion.includes('semestres') || lowerQuestion.includes('cuánto dura') || lowerQuestion.includes('tiempo')) {
+                return `⏰ <strong>Duración del Programa:</strong><br><br>
+                • <strong>Duración:</strong> ${programData.duracion.semestres}<br>
+                • <strong>Créditos:</strong> ${programData.duracion.creditos}<br>
+                • <strong>Modalidad:</strong> ${programData.duracion.modalidad}<br>
+                • <strong>Ciudad:</strong> ${programData.duracion.ciudad}<br><br>
+                📅 <em>Aproximadamente 4.5 años de formación académica.</em>`;
+            }
+            
+            // Plan de estudios
+            if (lowerQuestion.includes('materias') || lowerQuestion.includes('plan de estudios') || lowerQuestion.includes('asignaturas') || lowerQuestion.includes('qué se estudia')) {
+                return `📚 <strong>Plan de Estudios:</strong><br><br>
+                <strong>Primer Semestre:</strong><br>
+                ${programData.planEstudios.semestre1.map(m => `• ${m}`).join('<br>')}<br><br>
+                <strong>Materias Destacadas del Programa:</strong><br>
+                ${programData.planEstudios.materiasPrincipales.map(m => `• ${m}`).join('<br>')}<br><br>
+                📖 <em>Total: 54 materias distribuidas en 9 semestres con enfoque práctico y tecnológico.</em>`;
+            }
+            
+            // Requisitos
+            if (lowerQuestion.includes('requisitos') || lowerQuestion.includes('admisión') || lowerQuestion.includes('ingresar') || lowerQuestion.includes('inscripción')) {
+                return `📋 <strong>Requisitos de Admisión:</strong><br><br>
+                <strong>Requisitos académicos:</strong><br>
+                • ${programData.requisitos.titulo}<br>
+                • ${programData.requisitos.examenes}<br><br>
+                <strong>Documentos requeridos:</strong><br>
+                ${programData.requisitos.documentos.map(d => `• ${d}`).join('<br>')}<br><br>
+                <strong>Proceso:</strong><br>
+                • ${programData.requisitos.proceso}<br><br>
+                ✅ <em>Todo el proceso se realiza en línea a través de la plataforma de la universidad.</em>`;
+            }
+            
+            // Perfil profesional
+            if (lowerQuestion.includes('perfil') || lowerQuestion.includes('qué hace') || lowerQuestion.includes('competencias') || lowerQuestion.includes('ingeniero de software')) {
+                return `👨‍💻 <strong>Perfil del Ingeniero de Software:</strong><br><br>
+                <strong>Competencias principales:</strong><br>
+                ${programData.perfilProfesional.competencias.map(c => `• ${c}`).join('<br>')}<br><br>
+                <strong>Enfoques especiales:</strong><br>
+                ${programData.perfilProfesional.enfoques.map(e => `• ${e}`).join('<br>')}<br><br>
+                🎯 <em>Profesional integral con capacidad de liderazgo y compromiso social.</em>`;
+            }
+            
+            // Campo laboral
+            if (lowerQuestion.includes('trabajo') || lowerQuestion.includes('laboral') || lowerQuestion.includes('dónde trabajar') || lowerQuestion.includes('empleo')) {
+                return `🏢 <strong>Campo Laboral:</strong><br><br>
+                <strong>Cargos que puedes desempeñar:</strong><br>
+                ${programData.campoLaboral.cargos.map(c => `• ${c}`).join('<br>')}<br><br>
+                <strong>Sectores de trabajo:</strong><br>
+                ${programData.campoLaboral.sectores.map(s => `• ${s}`).join('<br>')}<br><br>
+                🚀 <em>Excelentes oportunidades en el sector tecnológico colombiano e internacional.</em>`;
+            }
+            
+            // Universidad
+            if (lowerQuestion.includes('universidad') || lowerQuestion.includes('maría cano') || lowerQuestion.includes('fumc') || lowerQuestion.includes('institución')) {
+                return `🏫 <strong>Fundación Universitaria María Cano:</strong><br><br>
+                • <strong>Sede principal:</strong> ${programData.universidad.sede}<br>
+                • <strong>SNIES:</strong> ${programData.universidad.snies}<br>
+                • <strong>Registro calificado:</strong> ${programData.universidad.registroCalificado}<br>
+                • <strong>Vigencia:</strong> ${programData.universidad.vigencia}<br><br>
+                🌟 <em>Universidad con más de 35 años de experiencia en educación superior en Colombia.</em>`;
+            }
+            
+            // Modalidad
+            if (lowerQuestion.includes('modalidad') || lowerQuestion.includes('presencial') || lowerQuestion.includes('virtual') || lowerQuestion.includes('horarios')) {
+                return `📍 <strong>Modalidad del Programa:</strong><br><br>
+                • <strong>Modalidad:</strong> Presencial<br>
+                • <strong>Sede:</strong> Medellín<br>
+                • <strong>Horarios:</strong> Se asignan según disponibilidad<br>
+                • <strong>Nota importante:</strong> Pueden incluir clases los sábados<br><br>
+                🕐 <em>La universidad se reserva el derecho de asignar horarios a los estudiantes.</em>`;
+            }
+            
+            // Respuesta por defecto
+            return `🤔 Entiendo tu pregunta, pero necesito más detalles. Puedo ayudarte con información sobre:<br><br>
+            💰 Costos y financiación<br>
+            📚 Plan de estudios y materias<br>
+            📋 Requisitos de admisión<br>
+            👨‍💻 Perfil profesional<br>
+            🏢 Campo laboral<br>
+            🏫 Información de la universidad<br><br>
+            ¿Sobre cuál de estos temas te gustaría saber más?`;
+        }
+
+        function askQuestion(question) {
+            document.getElementById('userInput').value = question;
+            sendMessage();
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const question = userInput.value.trim();
+            
+            if (question === '') return;
+            
+            addMessage(question, true);
+            userInput.value = '';
+            
+            showTyping();
+            
+            setTimeout(() => {
+                hideTyping();
+                const response = processQuestion(question);
+                addMessage(response);
+            }, 1500);
+        }
+
+        // Inicialización
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Mensaje de bienvenida después de cargar
+        setTimeout(() => {
+            addMessage(`🎯 <strong>Te puedo ayudar con:</strong><br><br>
+            • Información sobre costos y financiación<br>
+            • Plan de estudios detallado<br>
+            • Requisitos de admisión<br>
+            • Perfil profesional y competencias<br>
+            • Oportunidades laborales<br>
+            • Información general de la universidad<br><br>
+            💬 <em>Usa los botones de abajo o escribe tu pregunta específica.</em>`);
+        }, 2000);
+    </script>
+</body>
+</html>
